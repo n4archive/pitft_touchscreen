@@ -53,7 +53,7 @@ class pitft_touchscreen(threading.Thread):
                 e = self.event
                 self.event = {}
                 self.event['x'] = e['x']
-                self.event['y'] = e['x']
+                self.event['y'] = e['y']
                 try:
                     self.event['id'] = e['id']
                 except KeyError:
