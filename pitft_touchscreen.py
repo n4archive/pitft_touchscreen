@@ -18,6 +18,11 @@ class pitft_touchscreen(threading.Thread):
             print("Input device {} not found".format(device_path))
             exit()
         self.event = {}
+        self.event['time'] = None
+        self.event['id'] = None
+        self.event['x'] = None
+        self.event['y'] = None
+        self.event['touch'] = None
         self.events = queue.Queue()
 
     def run(self):
@@ -52,11 +57,11 @@ class pitft_touchscreen(threading.Thread):
                 try:
                     self.event['id'] = e['id']
                 except KeyError:
-                    self.event['id'] = -1
+                    self.event['id'] = None
                 try:
                     self.event['touch'] = e['touch']
                 except KeyError:
-                    self.event['touch'] = 0
+                    self.event['touch'] = None
 
     def get_event(self):
         if not self.events.empty():
