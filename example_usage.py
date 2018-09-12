@@ -9,9 +9,9 @@ t = pitft_touchscreen()
 # Init collecting events
 t.start()
 
-print("Touchscreen events will be collected during next 10 seconds.")
+print("Touchscreen events will be collected during next 100 seconds.")
 
-for i in range(0, 10):
+for i in range(0, 100):
     # Handle waiting events
     while not t.queue_empty():
         for e in t.get_event():
