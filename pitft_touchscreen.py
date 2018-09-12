@@ -32,6 +32,10 @@ class pitft_touchscreen(threading.Thread):
                     self.event['y'] = event.value
                 elif event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
                     self.event['id'] = event.value
+                    if event.value == -1:
+                        self.event['x'] = None
+                        self.event['y'] = None
+                        self.event['touch'] = None
                 elif event.code == evdev.ecodes.ABS_MT_POSITION_X:
                     pass
                 elif event.code == evdev.ecodes.ABS_MT_POSITION_Y:
