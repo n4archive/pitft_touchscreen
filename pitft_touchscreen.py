@@ -45,13 +45,18 @@ class pitft_touchscreen(threading.Thread):
             elif event.type == evdev.ecodes.SYN_REPORT:
                 self.event['time'] = event.timestamp()
                 self.events.put(self.event)
-                # Keep old values
-                old_event = self.event
+                e = self.event
                 self.event = {}
-                self.event['x'] = old_event['x']
-                self.event['y'] = old_event['x']
-                self.event['id'] = old_event['id']
-                self.event['touch'] = old_event['touch']
+                self.event['x'] = e['x']
+                self.event['y'] = e['x']
+                try:
+                    self.event['id'] = e['id']
+                except KeyError:
+                    self.event['id'] = -1
+                try:
+                    self.event['touch'] = e['touch']
+                except KeyError:
+                    self.event['touch'] = 0
 
     def get_event(self):
         if not self.events.empty():
