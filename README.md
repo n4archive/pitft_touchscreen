@@ -1,5 +1,7 @@
-Very simple piTFT touchscreen handling class. Fully threaded ;-)
-Usage:
+# pitft_touchscreen
+## Dependencies
+```pip3 install evdev```
+## Usage
 ```
 @raspberrypi:~/pitft_touchscreen $ python3 example_usage.py 
 Input device /dev/input/touchscreen found
@@ -35,3 +37,4 @@ Event received: {'touch': 1, 'id': 68, 'y': 183, 'time': 1533721690.682163, 'x':
 Event received: {'touch': 0, 'id': -1, 'y': 107, 'time': 1533721690.791378, 'x': 107}
 Do whaterer you want to do while waiting for touchscreen events
 pi@raspberrypi:~/pitft_touchscreen $
+```
