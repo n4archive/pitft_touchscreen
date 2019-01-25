@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 #  piTFT touchscreen handling using evdev
 
-import evdev
+try:
+    import evdev
+except ImportError:
+    print("pip3 install evdev")
+    raise(ImportError("evdev not found"))
 import queue
 import threading
 
