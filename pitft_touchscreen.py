@@ -79,9 +79,6 @@ class pitft_touchscreen(threading.Thread):
 
     def stop(self):
         self.stopping = True
-        # Inject event to force immediate breaking "for" loop in run procedure.
-        self.device.write(evdev.ecodes.EV_ABS, evdev.ecodes.ABS_X, 1)
-        self.device.write(evdev.ecodes.SYN_REPORT, 0, 0)
 
     def __del__(self):
         self.stop()
