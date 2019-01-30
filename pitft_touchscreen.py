@@ -7,65 +7,85 @@ try:
 except ImportError:
     print("pip3 install evdev")
     raise(ImportError("evdev not found"))
-import queue
 import threading
+import queue
+try:
+    # python 3.5+
+    import queue
+except ImportError:
+    # python 2.7
+    import Queue as queue
 
 
 # Class for handling events from piTFT
 class pitft_touchscreen(threading.Thread):
-    def __init__(self, device_path="/dev/input/touchscreen"):
+    def __init__(self, device_path="/dev/input/touchscreen", grab=False):
         super(pitft_touchscreen, self).__init__()
-        self.device = evdev.InputDevice(device_path)
-        if self.device is not None:
-            print("Input device {} found".format(device_path))
-        else:
-            print("Input device {} not found".format(device_path))
-            exit()
-        self.event = {}
-        self.event['time'] = None
-        self.event['id'] = None
-        self.event['x'] = None
-        self.event['y'] = None
-        self.event['touch'] = None
+        self.device_path = device_path
+        self.grab = grab
         self.events = queue.Queue()
+        self.shutdown = threading.Event()
 
     def run(self):
-        self.stopping = False
-        for event in self.device.read_loop():
-            if self.stopping:
-                break
-            if event.type == evdev.ecodes.EV_ABS:
-                if event.code == evdev.ecodes.ABS_X:
-                    self.event['x'] = event.value
-                elif event.code == evdev.ecodes.ABS_Y:
-                    self.event['y'] = event.value
-                elif event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
-                    self.event['id'] = event.value
-                    if event.value == -1:
-                        self.event['x'] = None
-                        self.event['y'] = None
-                        self.event['touch'] = None
-                elif event.code == evdev.ecodes.ABS_MT_POSITION_X:
-                    pass
-                elif event.code == evdev.ecodes.ABS_MT_POSITION_Y:
-                    pass
-            elif event.type == evdev.ecodes.EV_KEY:
-                self.event['touch'] = event.value
-            elif event.type == evdev.ecodes.SYN_REPORT:
-                self.event['time'] = event.timestamp()
-                self.events.put(self.event)
-                e = self.event
-                self.event = {}
-                self.event['x'] = e['x']
-                self.event['y'] = e['y']
-                try:
-                    self.event['id'] = e['id']
-                except KeyError:
-                    self.event['id'] = None
-                try:
-                    self.event['touch'] = e['touch']
-                except KeyError:
-                    self.event['touch'] = None
+        thread_process = threading.Thread(target=self.process_device)
+        # run thread as a daemon so it gets cleaned up on exit.
+        thread_process.daemon = True
+        thread_process.start()
+        self.shutdown.wait()
+
+    # thread function
+    def process_device(self):
+        device = None
+        # if the path to device is not found, InputDevice raises an OSError
+        # exception.  This will handle it and close thread.
+        try:
+            device = evdev.InputDevice(self.device_path)
+            if self.grab:
+                device.grab()
+        except Exception as ex:
+            message = "Unable to load device {0} due to a {1} exception with" \
+                      " message: {2}.".format(self.device_path,
+                                              type(ex).__name__, str(ex))
+            raise Exception(message)
+        finally:
+            if device is None:
+                self.shutdown.set()
+        # Loop for getting evdev events
+        event = {'time': None, 'id': None, 'x': None, 'y': None, 'touch': None}
+        while not self.shutdown.is_set():
+            for input_event in device.read_loop():
+                if input_event.type == evdev.ecodes.EV_ABS:
+                    if input_event.code == evdev.ecodes.ABS_X:
+                        event['x'] = input_event.value
+                    elif input_event.code == evdev.ecodes.ABS_Y:
+                        event['y'] = input_event.value
+                    elif input_event.code == evdev.ecodes.ABS_MT_TRACKING_ID:
+                        event['id'] = input_event.value
+                        if input_event.value == -1:
+                            event['x'] = None
+                            event['y'] = None
+                            event['touch'] = None
+                    elif input_event.code == evdev.ecodes.ABS_MT_POSITION_X:
+                        pass
+                    elif input_event.code == evdev.ecodes.ABS_MT_POSITION_Y:
+                        pass
+                elif input_event.type == evdev.ecodes.EV_KEY:
+                    event['touch'] = input_event.value
+                elif input_event.type == evdev.ecodes.SYN_REPORT:
+                    event['time'] = input_event.timestamp()
+                    self.events.put(event)
+                    e = event
+                    event = {'x': e['x'], 'y': e['y']}
+                    try:
+                        event['id'] = e['id']
+                    except KeyError:
+                        event['id'] = None
+                    try:
+                        event['touch'] = e['touch']
+                    except KeyError:
+                        event['touch'] = None
+        if self.grab:
+            device.ungrab()
 
     def get_event(self):
         if not self.events.empty():
@@ -78,7 +98,7 @@ class pitft_touchscreen(threading.Thread):
         return self.events.empty()
 
     def stop(self):
-        self.stopping = True
+        self.shutdown.set()
 
     def __del__(self):
-        self.stop()
+        self.shutdown.set()
