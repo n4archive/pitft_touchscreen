@@ -8,7 +8,6 @@ except ImportError:
     print("pip3 install evdev")
     raise(ImportError("evdev not found"))
 import threading
-import queue
 try:
     # python 3.5+
     import queue
