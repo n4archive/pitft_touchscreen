@@ -24,8 +24,8 @@ class pitft_touchscreen(threading.Thread):
         self.grab = grab
         self.events = queue.Queue()
         self.shutdown = threading.Event()
-        self.devices_resistive = ["EP0110M09"]    # Support for Adafruit 2.8 Capacitive PiTFT
-        self.devices_capacitive = ["stmpe-ts"]    # Support for Adafruit 2.4, 2.8, 3.2, 3.5 Resistive PiTFT
+        self.devices_capacitive = ["EP0110M09"]    # Support for Adafruit 2.8 Capacitive PiTFT
+        self.devices_resistive = ["stmpe-ts"]    # Support for Adafruit 2.4, 2.8, 3.2, 3.5 Resistive PiTFT
 
     def run(self):
         thread_process = threading.Thread(target=self.process_device)
