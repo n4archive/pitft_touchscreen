@@ -17,8 +17,8 @@ for i in range(0, 100):
         for e in t.get_event():
             print("Event received: {}".format(e))
     # Do your own business now
-    print("Do whaterer you want to do while waiting for touchscreen events")
-    # Wait ia second..
+    print("Do whatever you want to do while waiting for touchscreen events")
+    # Wait a second..
     sleep(1)
 
 # In real program you need to call stop to stop collecting events
